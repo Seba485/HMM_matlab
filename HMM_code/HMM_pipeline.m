@@ -287,6 +287,124 @@ grid on
 
 %--------------------------------------------------------------------------
 
+%% FORWARD ALGORITHM between buffer FIFO VERSION
+
+dt_buffer = 1; %sec
+buffer_len = dt_buffer*f;
+
+fifo = [];
+
+initial_state_idx = 3; %Rest
+
+initial_posterior = ones(N_state,1).*1/N_state;
+
+hmm_output_fifo = initial_posterior.*ones(N_state,buffer_len-1);
+
+flag = false;
+for k = 1:n_sample
+    %new raw output
+    new_data = tst_pp(k);
+    
+    %fifo loading
+    fifo = [fifo; new_data];
+
+    %once the fifo is fully loaded --> hmm inference
+    if length(fifo) == buffer_len
+   
+        %likelihood on the entire buffer
+        likelihood = zeros(N_state,1);
+
+        for m = 1:N_state
+            likelihood(m) = prod(hmm_state(fifo,state_name(m)));
+        end
+        likelihood = likelihood./sum(likelihood); %normalization
+
+        %posterior
+        posterior = likelihood.*(hmm_output_fifo(:,end)'*T)';
+     
+        %normalization    
+        posterior = posterior./sum(posterior);
+
+        hmm_output_fifo = [hmm_output_fifo, posterior];
+
+        % fifo update
+        fifo(1) = [];
+
+    end
+end
+
+[suggested_state_pp,suggested_state] = max(hmm_output_fifo);
+
+suggested_state(1:buffer_len-1) = initial_state_idx;
+Ck_pred = zeros(length(suggested_state),1);
+Ck_pred(suggested_state==1) = CODE.Both_Hand;
+Ck_pred(suggested_state==2) = CODE.Both_Feet;
+Ck_pred(suggested_state==3) = CODE.Rest;
+
+
+raw_accuracy = 100*sum(Ck_pred==true_label)/length(true_label);
+raw_accuracy_rest = 100*sum(Ck_pred(true_label==CODE.Rest)==CODE.Rest)/sum(true_label==CODE.Rest);
+raw_accuracy_both_hand = 100*sum(Ck_pred(true_label==CODE.Both_Hand)==CODE.Both_Hand)/sum(true_label==CODE.Both_Hand);
+raw_accuracy_both_feet = 100*sum(Ck_pred(true_label==CODE.Both_Feet)==CODE.Both_Feet)/sum(true_label==CODE.Both_Feet);
+
+%--------------------------------------------------------------------------
+clear state_plot
+state_plot(Ck_pred==CODE.Both_Feet) = 0.9;
+state_plot(Ck_pred==CODE.Both_Hand) = 0.1;
+state_plot(Ck_pred==CODE.Rest) = 0.5;
+
+clear label_plot
+label_plot(true_label==CODE.Both_Feet) = 0.9;
+label_plot(true_label==CODE.Rest) = 0.5;
+label_plot(true_label==CODE.Both_Hand) = 0.1;
+
+time_base = [0:n_sample-1]/f;
+% classifier output
+figure(8)
+sgtitle('HMM inference on '+string(dt_buffer)+'sec buffer FIFO')
+subplot(311)
+plot(time_base, tst_pp,'wo','MarkerFaceColor','w','MarkerSize',1)
+xlim([time_base(1), time_base(end)])
+xlabel('t[sec]')
+hold on
+plot(time_base(true_label==CODE.Both_Hand), label_plot(true_label==CODE.Both_Hand), 'r.','LineWidth',2)
+plot(time_base(true_label==CODE.Both_Feet), label_plot(true_label==CODE.Both_Feet), 'b.','LineWidth',2)
+plot(time_base(true_label==CODE.Rest), label_plot(true_label==CODE.Rest), 'g.','LineWidth',2)
+hold off
+legend('Raw test output','Both hand','Both feet','Rest')
+title('Test data - True label')
+
+subplot(312)
+plot(time_base,label_plot,'w-','LineWidth',1.5)
+xlim([time_base(1), time_base(end)])
+xlabel('t[sec]')
+hold on
+plot(time_base,state_plot,'g--','LineWidth',0.5)
+hold off
+legend('True lable','Predicted label')
+title('Raw overall accuracy: ' + string(raw_accuracy) + '%')
+
+subplot(313)
+plot(time_base(Ck_pred==CODE.Both_Hand),suggested_state_pp(Ck_pred==CODE.Both_Hand),'ro','MarkerFaceColor','r','MarkerSize',3)
+xlim([time_base(1), time_base(end)])
+xlabel('t[sec]')
+hold on
+plot(time_base(Ck_pred==CODE.Both_Feet),suggested_state_pp(Ck_pred==CODE.Both_Feet),'bo','MarkerFaceColor','b','MarkerSize',3)
+plot(time_base(Ck_pred==CODE.Rest),suggested_state_pp(Ck_pred==CODE.Rest),'go','MarkerFaceColor','g','MarkerSize',3)
+hold off
+legend('Both hand pp', 'Both feet pp', 'Rest pp')
+title('Probability output hmm')
+
+figure(9)
+bar([1:4], [raw_accuracy, raw_accuracy_both_hand, raw_accuracy_both_feet, raw_accuracy_rest])
+xticklabels(["Overall" "Both Hand" "Both Feet" "Rest"])
+ylabel('Accuracy %')
+ylim([0 100])
+title('Test Accuracy FIFO')
+grid on
+
+%--------------------------------------------------------------------------
+
 %% FORWARD algorithm
 % probability of being in state Si at time t given the previous observation
 % and the model. P(o1,o2,...,ot, St=Si | model)
