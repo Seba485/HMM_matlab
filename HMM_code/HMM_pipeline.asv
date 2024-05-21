@@ -215,7 +215,7 @@ for k = 1:n_trial
     if k<n_trial
         trial_span = trial_start_idx(k):trial_start_idx(k+1); %indexes
     else
-        trial_span = trial_start_idx(k):n_sample; %indexes
+        trial_span = trial_start_idx(k):trial_start_idx(end); %indexes
     end
     n_bh = sum(Ck_pred(trial_span)==CODE.Both_Hand);
     n_bf = sum(Ck_pred(trial_span)==CODE.Both_Feet);
@@ -248,7 +248,7 @@ for k = 1:n_sample
     if trial.start(k)==1 %new tiral
         dynamic_fw(k) = y_stable;
     else
-        dynamic_fw(k) = Dynamic_framework(dynamic_fw(k-1),hmm_hard(k),parameters);
+        dynamic_fw(k) = Dynamic_framework(dynamic_fw(k-1),hmm_hard(k,1),parameters);
     end
 end 
 
@@ -274,7 +274,7 @@ trial_acc_r_dyn = 100*sum(trial_pred_dyn(trial.label==CODE.Rest)==CODE.Rest)/sum
 
 % Exponential framework
 y_stable = 0.5; %were the classifier has to to stai during INC (intentional non control)
-alpha = 0.9; %erigth on previous value of the framework
+alpha = 0.5 %erigth on previous value of the framework
 
 parameters = [y_stable w psi chi phi];
 
@@ -288,7 +288,7 @@ for k = 1:n_sample
     if trial.start(k)==1 %new tiral
         exp_fw(k) = y_stable;
     else
-        exp_fw(k) = exp_fw(k-1)*alpha + hmm_hard(k)*(1-alpha);
+        exp_fw = D_init*alpha + pp*(1-alpha);
     end
 end 
 
@@ -299,7 +299,7 @@ for k = 1:n_trial
     if k<n_trial
         trial_span = trial_start_idx(k):trial_start_idx(k+1); %indexes
     else
-        trial_span = trial_start_idx(k):n_sample; %indexes
+        trial_span = trial_start_idx(k):trial_start_idx(end); %indexes
     end
     n_bh = sum(exp_fw(trial_span)<=th(1));
     n_bf = sum(exp_fw(trial_span)>=th(2));
@@ -395,15 +395,14 @@ title('Test TRIAL Accuracy FIFO + Exponential Framework')
 grid on
 
 
-figure(13)
+figure(12)
 plot(time_base,label_plot,'w-','LineWidth',1.5)
-xlim([time_base(1), time_base(time_base==60)])
+xlim([time_base(1), time_base(find(time_base==60))])
 xlabel('t[sec]')
 hold on
 plot(time_base,state_plot,'g--','LineWidth',0.5)
 plot(time_base,dynamic_fw,'r-','LineWidth',1)
-plot(time_base,exp_fw,'b-','LineWidth',1)
-stem(time_base(trial.start==1),ones(n_trial,1),'m-','LineWidth',2,'Marker','none')
+stem(time_base(find(trial.start==1)),ones(n_trial,1),'m-','LineWidth',2,'Marker','none')
 hold off
 legend('True lable','Predicted label','Dynamic framework','trial')
 title('Raw overall accuracy: ' + string(raw_accuracy) + '%')

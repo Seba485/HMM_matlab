@@ -276,7 +276,7 @@ colorbar
 clear run feature_table reshape_idx FS_matrix_avg FS_matrix
 
 %% by visual inspection
-features = ["CZ" 10; "C3" 10; "C4" 10; "C3" 8];
+features = ["CZ" 10; "C3" 10; "C4" 10; "C3" 8]
 
 feature_ch = [];
 feature_f = [];
@@ -293,13 +293,40 @@ clear k features feature_ch feature_f
 
 trn_set = [];
 true_label = [];
+trial.POS = [0];
+trial.TYP = [];
+trial.DUR = [];
 for run = 1:n_run
     trn_set = [trn_set; PSD_reshape{run}];
     true_label = [true_label; Ck_win{run}];
+
+    trial.POS = [trial.POS; trial.POS(end)+h_PSD{run}.EVENT.POS]; 
+    trial.TYP = [trial.TYP; h_PSD{run}.EVENT.TYP];
+    trial.DUR = [trial.DUR; h_PSD{run}.EVENT.DUR];
 end
 trn_set = trn_set(:,reshape_idx);
+trial.POS(1) = [];
 
-clear run
+% the training set is made up all the cue-->end continuous feedback period
+% in order to have the information about trials we need to manipulate the
+% struct trial
+trial.info = 'trial start and label refers to cue-->end of continuous feedback period';
+trial.start = [];
+trial.label = zeros(n_trial,1);
+
+trial_start = trial.POS(trial.TYP==CODE.Both_Feet | trial.TYP==CODE.Both_Hand | trial.TYP==CODE.Rest); %cue
+trial_end = trial.POS(trial.TYP==CODE.Continuous_feedback) + trial.DUR(trial.TYP==CODE.Continuous_feedback); %end of continuous feedback
+trial_len = trial_end - trial_start; %length of each trial
+
+n_trial = length(trial_len);
+
+for k = 1:n_trial
+    trial.start = [trial.start; 1; zeros(trial_len(k)-1,1)];
+    trial.label(k) = trial.TYP(find(trial.POS==trial_start(k)));
+end
+
+
+clear run k trial_start trial_end trial_length 
 
 %% Gaussian classifier
 n_feature = size(trn_set,2);
@@ -399,7 +426,7 @@ histogram(trn_pp(true_label==CODE.Rest,1),100,'Normalization',"pdf",'FaceColor',
 ylim([0 12])
 title('Rest class')
 
-save('output_file/raw_pp_output_1.mat','trn_pp','true_label')
+save('output_file/raw_pp_output_1.mat','trn_pp','true_label','trial')
 
 %% with the multidimensional
 trn_pp_md = [];
@@ -447,4 +474,4 @@ histogram(trn_pp_md(true_label==CODE.Rest,1),100,'Normalization',"pdf",'FaceColo
 ylim([0 12])
 title('Rest class')
 
-save('output_file/raw_pp_output_1_md.mat','trn_pp_md','true_label')
+save('output_file/raw_pp_output_1_md.mat','trn_pp_md','true_label','trial')

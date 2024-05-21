@@ -19,13 +19,13 @@ function [y] = Dynamic_framework(y_init,pp,parameters)
 
             
     % Free Force
-    if y_init<y_stable-w && y_init>=y_limit(1)
+    if y_init<y_stable-w && y_init>=y_limit(1) %near but above low band
         F_free = -sin(y_init*pi/(y_stable-w));
     end
-    if y_init>=y_stable-w && y_init<=y_stable+w
+    if y_init>=y_stable-w && y_init<=y_stable+w %in the middle of the central valley
         F_free = -psi*sin(pi*(y_init-y_stable)/w);
     end
-    if y_init>y_stable+w && y_init<=y_limit(2)
+    if y_init>y_stable+w && y_init<=y_limit(2) %near but below high band
         F_free = sin((y_init-y_stable-w)*pi/(y_stable-w));
     end
     
