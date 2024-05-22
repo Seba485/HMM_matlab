@@ -24,7 +24,7 @@ f = 16;%Hzreal_data
 time_base = [0:length(pp)-1]/f;
 
 figure(12)
-plot(time_base, pp,'wo','MarkerFaceColor','w','MarkerSize',1);
+plot(time_base, pp,'ko','MarkerFaceColor','k','MarkerSize',1);
 xlim([time_base(1), time_base(end)])
 xlabel('sec')
 ylabel('prob')
@@ -284,7 +284,7 @@ y_lim = [-0.1 1.1];
 figure(8)
 sgtitle('HMM inference on '+string(dt_buffer)+'sec buffer FIFO')
 subplot(311)
-plot(time_base, tst_pp,'wo','MarkerFaceColor','w','MarkerSize',1)
+plot(time_base, tst_pp,'ko','MarkerFaceColor','k','MarkerSize',1)
 xlim([time_base(1), time_base(end)])
 ylim(y_lim)
 xlabel('t[sec]')

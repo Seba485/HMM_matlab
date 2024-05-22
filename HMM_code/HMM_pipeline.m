@@ -12,7 +12,7 @@ CODE.Continuous_feedback = 781;
 CODE.Target_hit = 897;
 CODE.Target_miss = 898;
 
-real_data = real;
+real_data = false;
 %% DATA
 f = 16;%Hz
 
@@ -39,7 +39,7 @@ label_plot(true_label==CODE.Rest) = 0.5;
 label_plot(true_label==CODE.Both_Hand) = 0.1;
 
 figure(1)
-plot(time_base, trn_pp,'wo','MarkerFaceColor','w','MarkerSize',1)
+plot(time_base, trn_pp,'ko','MarkerFaceColor','k','MarkerSize',1)
 hold on
 plot(time_base(true_label==CODE.Both_Hand), label_plot(true_label==CODE.Both_Hand), 'r.','LineWidth',2)
 plot(time_base(true_label==CODE.Both_Feet), label_plot(true_label==CODE.Both_Feet), 'b.','LineWidth',2)
@@ -161,7 +161,7 @@ hmm_pred.trial = []; %predicted trial label
 y_stable_dyn = 0.5; %were the classifier has to to stai during INC (intentional non control)
 w = 0.3; %boudaries of the conservative part [y_stable-w y_stable+w]  
 psi = 0.5; %heigth of the potential valley (conservative part of the Free force)
-chi = 0.5; %reactivity of the sistem
+chi = 0.1; %reactivity of the sistem
 phi = 0.4; %weight on the previous framework value [0 1]
 parameters = [y_stable_dyn w psi chi phi];
 dyn.output = 0.5*ones(buffer_len-1,1);
@@ -172,7 +172,7 @@ th_dyn = [0.2 0.8]; %threshold for the framework
 
 % Exponential framework parameters
 y_stable_exp = 0.5; %were the classifier has to to stai during INC (intentional non control)
-alpha = 0.9; %weigth on previous value of the framework
+alpha = 0.98; %weigth on previous value of the framework
 exp.output = 0.5*ones(buffer_len-1,1);
 exp.pred = []; %point wise prediction
 exp.trial = []; %trial prediction
@@ -363,7 +363,7 @@ y_lim = [-0.1 1.1];
 figure(8)
 sgtitle('HMM inference on '+string(dt_buffer)+'sec buffer FIFO')
 subplot(311)
-plot(time_base, tst_pp,'wo','MarkerFaceColor','w','MarkerSize',1)
+plot(time_base, tst_pp,'ko','MarkerFaceColor','k','MarkerSize',1)
 xlim([time_base(1), time_base(end)])
 ylim(y_lim)
 xlabel('t[sec]')
@@ -376,7 +376,7 @@ legend('Raw test output','Both hand','Both feet','Rest')
 title('Test data - True label')
 
 subplot(312)
-plot(time_base,label_plot,'w-','LineWidth',1.5)
+plot(time_base,label_plot,'k-','LineWidth',1.5)
 xlim([time_base(1), time_base(end)])
 ylim(y_lim)
 xlabel('t[sec]')
@@ -432,7 +432,7 @@ title('HMM + Exponential framework trial accuracy')
 grid on
 
 figure(10)
-plot(time_base,label_plot,'w-','LineWidth',1.5)
+plot(time_base,label_plot,'k-','LineWidth',1.5)
 xlim([time_base(1), time_base(end)])
 ylim(y_lim)
 xlabel('t[sec]')
