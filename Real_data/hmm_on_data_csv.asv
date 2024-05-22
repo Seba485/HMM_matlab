@@ -246,7 +246,7 @@ end
 % hmm_pred.accuracy.bf = 100*sum(hmm_pred.label(true_label==CODE.Both_Feet)==CODE.Both_Feet)/sum(true_label==CODE.Both_Feet);
 % hmm_pred.accuracy.r = 100*sum(hmm_pred.label(true_label==CODE.Rest)==CODE.Rest)/sum(true_label==CODE.Rest);
 
-%n_trial = sum(trial.start==1);
+n_trial = sum(trial.start==1);
 % HMM trial accuracy
 % the trial is classified as the most frequent class in it
 % hmm_pred.trial_acc.overall = 100*sum(hmm_pred.trial==trial.label)/n_trial;
@@ -301,12 +301,10 @@ plot(time_base,state_plot,'g--','LineWidth',0.5)
 xlim([time_base(1), time_base(end)])
 ylim(y_lim)
 xlabel('t[sec]')
-hold on
-plot(time_base,exponential_frw,'b','LineWidth',0.5)
-plot(time_base,dynamic_frw,'r','LineWidth',0.5)
+% hold on
 % plot(time_base,label_plot,'w-','LineWidth',1.5)
 % hold off
-legend('Predicted label','Exponential fw','Dynamic fw')%,'True lable')
+legend('Predicted label')%,'True lable')
 title('HMM output')
 
 subplot(313)
