@@ -1,4 +1,4 @@
-function [trn_pp, Ck_trn] = create_simulated_data(CODE,n,t,f)
+function [trn_pp, true_label, trial] = create_simulated_data(CODE,n,t,f)
 % [trn_pp, Ck_trn] = create_simulated_data(CODE,n,t,f,'type','gaussian')
 % create the simulated data for the experiment,
 % 3 distribution, one near zero for the both_feet class, one near 1 for the
@@ -14,7 +14,10 @@ function [trn_pp, Ck_trn] = create_simulated_data(CODE,n,t,f)
 % number of sample for each class select a high n (>10000)
     
     trn_pp = [];
-    Ck_trn = [];
+    true_label = [];
+
+    trial.start = [];
+    trial.label = [];
 
     label = [CODE.Both_Hand, CODE.Both_Feet, CODE.Rest];
     n_task = length(label);
@@ -24,15 +27,17 @@ function [trn_pp, Ck_trn] = create_simulated_data(CODE,n,t,f)
     added_sample = 0;
     while added_sample < n
         random_task = randi([1 n_task]);
+        trial.label = [trial.label; label(random_task)];
+        trial.start = [trial.start;1;zeros(n_sample-1,1)];
     
-        Ck_trn = [Ck_trn; label(random_task)*ones(n_sample,1)];
+        true_label = [true_label; label(random_task)*ones(n_sample,1)];
 
         switch random_task
-            case 1
+            case 1 %both hand
                 samples = sample_generator_gaussian([0 0.1], [0.05 0.1], [0.9 0.1], n_sample);
-            case 2
+            case 2 %both feet
                 samples = sample_generator_gaussian([1 0.9], [0.05 0.1], [0.9 0.1], n_sample);
-            case 3
+            case 3 %rest
                 samples = sample_generator_gaussian([0.1 0.9], [0.2 0.2], [0.5 0.5], n_sample);
             otherwise
                 %pass
@@ -42,6 +47,7 @@ function [trn_pp, Ck_trn] = create_simulated_data(CODE,n,t,f)
 
         added_sample = length(trn_pp);
     end
+
 end
         
 
