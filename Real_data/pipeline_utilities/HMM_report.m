@@ -24,7 +24,7 @@ for k = 1:length(file_name)
         %pass
     else
         disp(file_name{k})
-        load(file_name{k}) %settings
+        load([root file_name{k}]) %settings
     end
 end
 
