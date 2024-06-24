@@ -1,4 +1,9 @@
 function [] = HMM_report(folder_path, show)
+% folder_path: folder in which threre are .calibration. 3 classes files (remove or 
+% shift in an other folder the .calibration. files used for the classifier
+% training), .avaluation. 3 classes files, .smr.mat binary classifier file
+% if show==true some images are printed, all the valriables producted are
+% saved in the same falder path under the name of HMM_report.mat
 
 CODE.Trial_start = 1;
 CODE.Fixation_cross = 786;
