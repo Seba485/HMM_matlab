@@ -9,7 +9,7 @@ CODE.Rest = 783;
 
 f = 16;%Hz
 
-load("raw_pp_output.mat") %in case of real data
+load("/home/sebastiano/HMM_matlab/Real_data/output_file/raw_pp_output_1.mat") %in case of real data
 trn_pp = trn_pp(:,1);
 
 n_sample = length(trn_pp);

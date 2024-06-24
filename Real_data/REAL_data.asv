@@ -341,7 +341,7 @@ n_feature = size(trn_set,2);
 both_feet_data = trn_set(true_label==CODE.Both_Feet,:);
 both_hand_data = trn_set(true_label==CODE.Both_Hand,:);
 
-%% training one gmm for each feature
+% training one gmm for each feature
 gmm_both_feet = cell(1,n_feature);
 gmm_both_hand = cell(1,n_feature);
 
@@ -436,7 +436,6 @@ title('Rest class')
 save('output_file/raw_pp_output_1.mat','trn_pp','true_label','trial')
 
 %% with the multidimensional
-n_sample = size(trn_set,1);
 trn_pp_md = [];
 
 for k = 1:n_sample
@@ -451,14 +450,8 @@ for k = 1:n_sample
 end
 clear raw_likelihood both_hand_likelihood both_feet_likelihood
 
-f = 16;%Hz
-time_base = [0:n_sample-1]/f;
-label_plot(true_label==CODE.Both_Feet) = 0.9;
-label_plot(true_label==CODE.Rest) = 0.5;
-label_plot(true_label==CODE.Both_Hand) = 0.1;
-
 figure(12)
-plot(time_base, trn_pp_md(:,1),'ko','MarkerFaceColor','k','MarkerSize',0.5)
+plot(time_base, trn_pp_md(:,1),'wo','MarkerFaceColor','w','MarkerSize',0.5)
 hold on
 plot(time_base(true_label==CODE.Both_Hand), label_plot(true_label==CODE.Both_Hand), 'r.','LineWidth',2)
 plot(time_base(true_label==CODE.Both_Feet), label_plot(true_label==CODE.Both_Feet), 'b.','LineWidth',2)
@@ -488,4 +481,4 @@ histogram(trn_pp_md(true_label==CODE.Rest,1),100,'Normalization',"pdf",'FaceColo
 ylim([0 12])
 title('Rest class')
 
-%save('output_file/raw_pp_output_1_md.mat','trn_pp_md','true_label','trial')
+save('output_file/raw_pp_output_1_md.mat','trn_pp_md','true_label','trial')

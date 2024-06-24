@@ -54,7 +54,7 @@ function [feature_table,reshape_idx,FS_matrix,PSD_reshape,Ck_win] = fisher_matri
 
     ch_f_idx = [selected_ch, selected_freq, h_PSD.f(selected_freq)];
     
-    feature_table = array2table(ch_f_idx,"RowNames",ch_names(ch_f_idx(:,1)),"VariableNames",["ch idx" "freq idx" "freq Hz"]);
+    feature_table = array2table([ch_names(ch_f_idx(:,1))', ch_f_idx],"VariableNames",["ch name" "ch idx" "freq idx" "freq Hz"]);
     
 
 end

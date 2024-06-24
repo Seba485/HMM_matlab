@@ -12,7 +12,7 @@ CODE.Continuous_feedback = 781;
 CODE.Target_hit = 897;
 CODE.Target_miss = 898;
 
-real_data = false;
+real_data = true;
 %% DATA
 f = 16;%Hz
 
@@ -78,8 +78,8 @@ title('Rest class')
 % each state is a exponential model that describe the distribution
 % beahaviour of the static classifier output
 base = [0:0.01:1]';
-plot_both_hand = hmm_state(base,'both hand');
-plot_both_feet = hmm_state(base,'both feet');
+plot_both_hand = hmm_state(base,'task_2');
+plot_both_feet = hmm_state(base,'task_1');
 plot_rest = hmm_state(base,'rest');
 
 state_name = ["both hand", "both feet", "rest"];
@@ -182,7 +182,8 @@ th_exp = [0.2 0.8]; %thresh old for the framework
 
 %hard classification --> start with rest
 hmm_hard = [];
-state_name = ["both hand", "both feet", "rest"];
+%state_name = ["both hand", "both feet", "rest"];
+state_name = ["task_2", "task_1", "rest"];
 class_code = [CODE.Both_Hand, CODE.Both_Feet, CODE.Rest];
 x_code = [0 1 0.5];
 

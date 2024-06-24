@@ -1,10 +1,11 @@
 function [likelihood] = hmm_state(x,state,varargin)
-%pdf for the states 'both hand' 'both feet' 'rest'
+%pdf for the states 'task_1' 'task_2' 'rest'
 %[likelihood] = hmm_state(x,state,'param',param_array)
 %function: sum of two exponential --> both hand: A*exp(-B.*x) + A_1*exp(-B_1.*x);
 %                                     both feet: A*exp(B.*(x-1)) + A_1*exp(B_1.*(x-1));
 %                                     rest: both feet + both hand / 2
 %input: x--> data (or column vector of data)
+%       state--> string that identify the class state
 %       optional: param--> [A, B, A_1, B_1] where A is the amplitude of the
 %       exponential and B is the speed of decay
 %output: likelihood of the data
@@ -23,14 +24,14 @@ function [likelihood] = hmm_state(x,state,varargin)
     end
     
     switch state
-        case 'both hand'
+        case 'task_2'
             if custom_param == false
                 A = 10; B = 20;
                 A_1 = 5; B_1 = 8;
             end
 
             likelihood = A*exp(-B.*x) + A_1*exp(-B_1.*x);
-        case 'both feet'
+        case 'task_1'
             if custom_param == false
                 A = 10; B = 20;
                 A_1 = 5; B_1 = 8;
