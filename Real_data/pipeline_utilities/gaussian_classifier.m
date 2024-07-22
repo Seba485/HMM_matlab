@@ -13,11 +13,13 @@ n_comp = size(m,3);
 
 n_sample = size(data_set,1);
 
+
+
 raw_probability = [];
 
 for k = 1:n_sample
     sample = data_set(k,:);
-    sample_norm = sample./sum(abs(sample));
+    sample_norm = sample;%./sum(abs(sample));
 
     likelihood = []; 
     for i = 1:n_class
@@ -31,7 +33,7 @@ for k = 1:n_sample
 
             distance = sum(((sample_norm-M).^2)./C);
 
-            likelihood(i,j) = exp(-distance/ 2) / determinant;
+            likelihood(i,j) = exp(-distance/2) / determinant;
         end
     end
     

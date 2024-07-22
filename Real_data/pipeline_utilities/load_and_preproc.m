@@ -78,6 +78,12 @@ function [data, trial] = load_and_preproc(settings, folder_path, type, CODE)
     end
     
     n_run = length(s);
+
+    if n_run==0 %if there's no data
+        data = NaN;
+        trial = NaN;
+        return;
+    end
     
     %% Filter data
     
@@ -105,6 +111,9 @@ function [data, trial] = load_and_preproc(settings, folder_path, type, CODE)
         s_laplacian = s_filt{k}(:,1:n_ch) * lap;
         
         [PSD, f] = proc_spectrogram(s_laplacian, internal_win_size, win_shift, pshift, Fs, win_size);
+
+        %LOG PSD!!!!!!!!!
+        PSD = log(PSD);
         
         %select meaningfull frequences 
         h_PSD{k}.f = f(find(f==psd_freq(1)):find(f==psd_freq(end)));
@@ -115,21 +124,8 @@ function [data, trial] = load_and_preproc(settings, folder_path, type, CODE)
         h_PSD{k}.EVENT.DUR = round(h{k}.EVENT.DUR./(win_shift*Fs));
         h_PSD{k}.EVENT.TYP = h{k}.EVENT.TYP;
     end
-    
-    %% features extraction
-    
-    selected_f = [];
-    selected_ch = [];
-    for k = 1:length(ch_feature)
-        ch_temp = ch_feature(k);
-        for i = 1:length(freq_feature{ch_temp})
-            selected_ch = [selected_ch, ch_temp];
-            selected_f = [selected_f, find(psd_freq==freq_feature{ch_temp}(i))];
-        end
-    end
-    
-    reshape_idx = sub2ind([length(psd_freq), n_ch],selected_f,selected_ch);
-    
+
+    %psd -> win x frequency x channels
     
     %% Data set (data_set (sample x features) - true_lable)
     
@@ -138,7 +134,15 @@ function [data, trial] = load_and_preproc(settings, folder_path, type, CODE)
     PSD_reshape = {};
     
     for run = 1:n_run
-        PSD_reshape{run} = reshape(PSD_signal{run},[length(PSD_signal{run}),length(psd_freq)*n_ch]); 
+        PSD_reshape{run} = [];
+        n = 0;
+        for ch = 1:length(ch_feature)
+            freq_vect = freq_feature{ch_feature(ch)};
+            for freq = 1:length(freq_vect)
+                n = n + 1;
+                PSD_reshape{run}(:,n) = PSD_signal{run}(:,find(h_PSD{run}.f==freq_vect(freq)),ch_feature(ch));
+            end
+        end 
     end
     
     %merge into a uniqeu dataset
@@ -182,7 +186,7 @@ function [data, trial] = load_and_preproc(settings, folder_path, type, CODE)
     trial.n = length(trial.label);
     
     % maintain only data related to the trials
-    data.data = data.data(trial.idx, reshape_idx);
+    data.data = data.data(trial.idx,:);
     data.n_sample = length(data.data);
 
 end

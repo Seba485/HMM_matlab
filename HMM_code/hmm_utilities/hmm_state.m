@@ -41,7 +41,7 @@ function [likelihood] = hmm_state(x,state,varargin)
         case 'rest'
             if custom_param == false
                 A = 10; B = 40;
-                A_1 = 5; B_1 = 5;
+                A_1 = 5; B_1 = 8;
             end
 
             likelihood = A*exp(-B.*x) + A_1*exp(-B_1.*x) + A*exp(B.*(x-1)) + A_1*exp(B_1.*(x-1));
