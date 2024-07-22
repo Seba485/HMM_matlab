@@ -268,30 +268,28 @@ function [] = HMM_report(folder_path, show)
         %load csv and gdf (the gdf file is usefull only for the header event)
         h = {}; i = 0;
         j = 0;
-        csv_vect = {};
-        % smrbci = {};
-        % hmm = {};
-        % exp = {};
-        % T = {};
+        smrbci = {};
+        hmm = {};
+        exp = {};
+        T = {};
         for k = 1:length(file_name)
-            if isempty(strfind(file_name{k},join([keyWords.eval_T(mode),"csv"],""))) ...
+            if isempty(strfind(file_name{k},join([keyWords.eval_T(mode),"bag"],""))) ...
                     && isempty(strfind(file_name{k},join([keyWords.eval_T(mode),"gdf"],"")))
                 %pass
             else
                 disp(file_name{k});
-                if isempty(strfind(file_name{k},join([keyWords.eval_T(mode),"cvs"],""))) %its a gdf file
+                if isempty(strfind(file_name{k},join([keyWords.eval_T(mode),"bag"],""))) %its a gdf file
                     i = i+1;
                     [~, h{i}] = sload([root file_name{k}]); %signal and header
                 else %its a bag file
                     j = j+1;
-                    csv_vect{j} = readtable([root file_name{k}]);
-                    % bag = rosbag([root file_name{k}]);
-                    % 
-                    % %read the bag topics
-                    % smrbci{j} = readMessages(select(bag,"Topic", '/smrbci/neuroprediction'));
-                    % hmm{j} = readMessages(select(bag,"Topic", '/hmm/neuroprediction'));
-                    % exp{j} = readMessages(select(bag,"Topic", '/integrator/neuroprediction'));
-                    % T{j} = readMessages(select(bag,"Topic", '/traversability_output_topic')); %useless for the moment
+                    bag = rosbag([root file_name{k}]);
+
+                    %read the bag topics
+                    smrbci{j} = readMessages(select(bag,"Topic", '/smrbci/neuroprediction'),'DataFormat','struct');
+                    hmm{j} = readMessages(select(bag,"Topic", '/hmm/neuroprediction'),'DataFormat','struct');
+                    exp{j} = readMessages(select(bag,"Topic", '/integrator/neuroprediction'),'DataFormat','struct');
+                    T{j} = readMessages(select(bag,"Topic", '/traversability_output_topic'),'DataFormat','struct'); %useless for the moment
                 end
             end
         end
@@ -329,7 +327,7 @@ function [] = HMM_report(folder_path, show)
             acc_vect{mode}.t2(k) = mean(acc_vect{mode}.t2);
             acc_vect{mode}.rest(k) = mean(acc_vect{mode}.rest);
             
-            if ~isempty(csv_vect) %if there are also the rosbag
+            if ~isempty(hmm) %if there are also the rosbag
                 %merge the run for visual
                 smr_out = [];
                 hmm_out =  [];
@@ -338,18 +336,15 @@ function [] = HMM_report(folder_path, show)
                 trial.POS = [0];
                 trial.TYP = [];
                 trial.DUR = [];
-    
-                %classes = hmm{1}{1}.decoder.classes; %should be class_1, rest, class_2
-                classes_str = csv_vect{1}(1,'hmm_pred');
-                classes = str2double(strsplit(classes_str(2:end-1),', '));
+                 
+                classes = hmm{1}{1}.Decoder.Classes; %should be class_1, rest, class_2
 
                 for run = 1:n_run
-                    % for k = 1:length(hmm)
-                    %     smr_out = [smr_out; smrbci{run}{k+hmm_buffer_len-1}.softpredict.data];
-                    %     hmm_out = [hmm_out; hmm{run}{k}.softpredict.data];
-                    %     exp_out = [exp; exp{run}{k}.softpredict.data];
-                    % end
-                    smr_out = [smr_out]
+                    for k = 1:length(hmm{run})
+                        smr_out = [smr_out; (smrbci{run}{k}.Softpredict.Data)'];
+                        hmm_out = [hmm_out; (hmm{run}{k}.Softpredict.Data)'];
+                        exp_out = [exp_out; (exp{run}{k}.Softpredict.Data)'];
+                    end
                     trial.POS = [trial.POS; trial.POS(end)+h_PSD{run}.EVENT.POS]; 
                     trial.TYP = [trial.TYP; h_PSD{run}.EVENT.TYP];
                     trial.DUR = [trial.DUR; h_PSD{run}.EVENT.DUR];
@@ -363,6 +358,7 @@ function [] = HMM_report(folder_path, show)
                 n_trial = length(trial.len);
                 data.label = [];
                 trial.label = zeros(n_trial,1);
+                trial.start = [];
                 trial.idx = []; %indexes of the actual trials
                 for k = 1:n_trial
                     trial.start = [trial.start; 1; zeros(trial.len(k)-1,1)];
@@ -377,7 +373,9 @@ function [] = HMM_report(folder_path, show)
                 %trial = struct with .label, .idx (subset of idx for the trial),
                 %.start(flag of trial start), .pos, .typ, .dur, .len(lenght per trial)
     
-                time_base = [0:length(smr_out)-1]/f;
+                time_base = [1:length(hmm_out)]/f;
+                length(time_base)
+                length(smr_out)
                 label_plot(data.label==classes(1)) = 0.9;
                 label_plot(data.label==classes(3)) = 0.1;
                 label_plot(data.label==classes(2)) = 0.5;
@@ -432,7 +430,7 @@ function [] = HMM_report(folder_path, show)
                     sgtitle(join(['Accuracy mode: '+keyWords.eval_T(mode)]))
                     for run = 1:n_run
                         subplot(1, n_run+1, run)
-                        bar([1:4], [acc_vect(mode).overall(run), acc_vect(mode).t1(run), acc_vect(mode).rest(run), acc_vect(mode).t2(run)])
+                        bar([1:4], [acc_vect{mode}.overall(run), acc_vect{mode}.t1(run), acc_vect{mode}.rest(run), acc_vectmode).t2(run)])
                         xticklabels(["Overall" task_name{1} "rest" task_name{2}])
                         ylabel('Accuracy %')
                         ylim([0 100])

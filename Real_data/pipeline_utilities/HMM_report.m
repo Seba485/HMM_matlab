@@ -286,10 +286,10 @@ function [] = HMM_report(folder_path, show)
                     bag = rosbag([root file_name{k}]);
 
                     %read the bag topics
-                    smrbci{j} = readMessages(select(bag,"Topic", '/smrbci/neuroprediction'));
-                    hmm{j} = readMessages(select(bag,"Topic", '/hmm/neuroprediction'));
-                    exp{j} = readMessages(select(bag,"Topic", '/integrator/neuroprediction'));
-                    T{j} = readMessages(select(bag,"Topic", '/traversability_output_topic')); %useless for the moment
+                    smrbci{j} = readMessages(select(bag,"Topic", '/smrbci/neuroprediction'),'DataFormat','struct');
+                    hmm{j} = readMessages(select(bag,"Topic", '/hmm/neuroprediction'),'DataFormat','struct');
+                    exp{j} = readMessages(select(bag,"Topic", '/integrator/neuroprediction'),'DataFormat','struct');
+                    T{j} = readMessages(select(bag,"Topic", '/traversability_output_topic'),'DataFormat','struct'); %useless for the moment
                 end
             end
         end
@@ -327,7 +327,7 @@ function [] = HMM_report(folder_path, show)
             acc_vect{mode}.t2(k) = mean(acc_vect{mode}.t2);
             acc_vect{mode}.rest(k) = mean(acc_vect{mode}.rest);
             
-            if ~isempty(csv_vect) %if there are also the rosbag
+            if ~isempty(hmm) %if there are also the rosbag
                 %merge the run for visual
                 smr_out = [];
                 hmm_out =  [];
@@ -336,14 +336,14 @@ function [] = HMM_report(folder_path, show)
                 trial.POS = [0];
                 trial.TYP = [];
                 trial.DUR = [];
-    
-                classes = hmm{1}{1}.decoder.classes; %should be class_1, rest, class_2
+                 
+                classes = hmm{1}{1}.Decoder.Classes; %should be class_1, rest, class_2
 
                 for run = 1:n_run
-                    for k = 1:length(hmm)
-                        smr_out = [smr_out; smrbci{run}{k+hmm_buffer_len-1}.softpredict.data];
-                        hmm_out = [hmm_out; hmm{run}{k}.softpredict.data];
-                        exp_out = [exp; exp{run}{k}.softpredict.data];
+                    for k = 1:length(hmm{run})
+                        smr_out = [smr_out; (smrbci{run}{k}.Softpredict.Data)'];
+                        hmm_out = [hmm_out; (hmm{run}{k}.Softpredict.Data)'];
+                        exp_out = [exp_out; (exp{run}{k}.Softpredict.Data)'];
                     end
                     trial.POS = [trial.POS; trial.POS(end)+h_PSD{run}.EVENT.POS]; 
                     trial.TYP = [trial.TYP; h_PSD{run}.EVENT.TYP];
@@ -358,6 +358,7 @@ function [] = HMM_report(folder_path, show)
                 n_trial = length(trial.len);
                 data.label = [];
                 trial.label = zeros(n_trial,1);
+                trial.start = [];
                 trial.idx = []; %indexes of the actual trials
                 for k = 1:n_trial
                     trial.start = [trial.start; 1; zeros(trial.len(k)-1,1)];
@@ -367,12 +368,15 @@ function [] = HMM_report(folder_path, show)
                     data.label = [data.label; repelem(trial.label(k),trial.len(k))'];
                 end
                 trial.n = length(trial.label);
+                length(data.label)
                 %---------------------------------------------------------------------------
                 %data.label = array with all the lable for ach time point
                 %trial = struct with .label, .idx (subset of idx for the trial),
                 %.start(flag of trial start), .pos, .typ, .dur, .len(lenght per trial)
+
+                %devo prendere i solo id dati dei trial e non tutti......
     
-                time_base = [0:length(smr_out)-1]/f;
+                time_base = [1:length(hmm_out)]/f;
                 label_plot(data.label==classes(1)) = 0.9;
                 label_plot(data.label==classes(3)) = 0.1;
                 label_plot(data.label==classes(2)) = 0.5;
@@ -427,16 +431,16 @@ function [] = HMM_report(folder_path, show)
                     sgtitle(join(['Accuracy mode: '+keyWords.eval_T(mode)]))
                     for run = 1:n_run
                         subplot(1, n_run+1, run)
-                        bar([1:4], [acc_vect(mode).overall(run), acc_vect(mode).t1(run), acc_vect(mode).rest(run), acc_vect(mode).t2(run)])
+                        bar([1:4], [acc_vect{mode}.overall(run), acc_vect{mode}.t1(run), acc_vect{mode}.rest(run), acc_vect{mode}.t2(run)])
                         xticklabels(["Overall" task_name{1} "rest" task_name{2}])
                         ylabel('Accuracy %')
                         ylim([0 100])
-                        title('Run: '+string(k))
+                        title('Run: '+string(run))
                         grid on
                     end
                     k = run+1;
                     subplot(1, n_run+1, k)
-                    bar([1:4], [acc_vect(mode).overall(k), acc_vect(mode).t1(k), acc_vect(mode).rest(k), acc_vect(mode).t2(k)])
+                    bar([1:4], [acc_vect{mode}.overall(k), acc_vect{mode}.t1(k), acc_vect{mode}.rest(k), acc_vect{mode}.t2(k)])
                     xticklabels(["Overall" task_name{1} "rest" task_name{2}])
                     ylabel('Accuracy %')
                     ylim([0 100])
