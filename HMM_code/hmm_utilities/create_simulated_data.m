@@ -34,11 +34,11 @@ function [trn_pp, true_label, trial] = create_simulated_data(CODE,n,t,f)
 
         switch random_task
             case 1 %both hand
-                samples = sample_generator_gaussian([0 0.1], [0.05 0.1], [0.9 0.1], n_sample);
+                samples = sample_generator_gaussian([0 0.1], [0.005 0.2], [0.7 0.3], n_sample);
             case 2 %both feet
-                samples = sample_generator_gaussian([1 0.9], [0.05 0.1], [0.9 0.1], n_sample);
+                samples = sample_generator_gaussian([1 0.9], [0.005 0.2], [0.7 0.3], n_sample);
             case 3 %rest
-                samples = sample_generator_gaussian([0.1 0.9], [0.2 0.2], [0.5 0.5], n_sample);
+                samples = sample_generator_gaussian([0 0.1 1 0.9], [0.005 0.2 0.005 0.2], [30 20 30 20], n_sample);
             otherwise
                 %pass
         end

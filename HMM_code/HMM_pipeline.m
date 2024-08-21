@@ -13,7 +13,7 @@ CODE.Target_hit = 897;
 CODE.Target_miss = 898;
 
 
-real_data = true;
+real_data = false;
 %% DATA
 f = 16;%Hz
 
@@ -40,34 +40,39 @@ label_plot(true_label==CODE.Rest) = 0.5;
 label_plot(true_label==CODE.Both_Hand) = 0.1;
 
 figure(1)
-plot(time_base, trn_pp,'ko','MarkerFaceColor','k','MarkerSize',1)
+plot(time_base, trn_pp,'ko','MarkerFaceColor','k','MarkerSize',1.5)
 hold on
 plot(time_base(true_label==CODE.Both_Hand), label_plot(true_label==CODE.Both_Hand), 'r.','LineWidth',2)
 plot(time_base(true_label==CODE.Both_Feet), label_plot(true_label==CODE.Both_Feet), 'b.','LineWidth',2)
 plot(time_base(true_label==CODE.Rest), label_plot(true_label==CODE.Rest), 'g.','LineWidth',2)
 hold off
-xlim([time_base(1), time_base(end)])
+xlim([time_base(1), time_base(time_base==200)])
 xlabel('sec')
 ylabel('prob')
-title('classifier output probabilities')
-legend('raw trn output','both hand','both feet','rest')
+title('Gaussian classifier output')
+legend('Raw output','Task 1','Task 2','Rest')
+legend('FontSize',15)
+set(gca, 'FontSize',15,'LineWidth',2)
 
 figure(2)
-y_lim = [0 12];
+y_lim = [0 1];
 sgtitle('Data distribution')
 subplot(131)
-histogram(both_hand_pp,100,'Normalization',"pdf",'FaceColor',"#D95319")
+histogram(both_hand_pp,100,'Normalization',"probability",'FaceColor',"#D95319")
+set(gca, 'FontSize',15,'LineWidth',2)
 ylim(y_lim)
 title('Both hand class')
 
 subplot(132)
-histogram(both_feet_pp,100,'Normalization',"pdf",'FaceColor',"#0072BD")
+histogram(both_feet_pp,100,'Normalization',"probability",'FaceColor',"#0072BD")
 ylim(y_lim)
+set(gca, 'FontSize',15,'LineWidth',2)
 title('Both feet class')
 
 subplot(133)
-histogram(rest_pp,100,'Normalization',"pdf",'FaceColor',"#77AC30")
+histogram(rest_pp,100,'Normalization',"probability",'FaceColor',"#77AC30")
 ylim(y_lim)
+set(gca, 'FontSize',15,'LineWidth',2)
 title('Rest class')
 %--------------------------------------------------------------------------
 
@@ -82,6 +87,10 @@ base = [0:0.01:1]';
 plot_both_hand = hmm_state(base,'task_2');
 plot_both_feet = hmm_state(base,'task_1');
 plot_rest = hmm_state(base,'rest');
+norm_factor = max(plot_both_hand);
+plot_both_hand = plot_both_hand/norm_factor;%,'param',param);
+plot_both_feet = plot_both_feet/norm_factor;
+plot_rest = plot_rest/norm_factor;
 
 state_name = ["both hand", "both feet", "rest"];
 %save('hmm_state_exp.mat',"state_gmm","state_name");
@@ -89,27 +98,33 @@ state_name = ["both hand", "both feet", "rest"];
 
 %--------------------------------------------------------------------------
 figure(3)
-sgtitle('Data distribution - GMM state')
+sgtitle('Data distribution')
 subplot(131)
-histogram(both_hand_pp,100,'Normalization',"pdf",'FaceColor',"#D95319")
+histogram(both_hand_pp,100,'Normalization',"probability",'FaceColor',"#D95319")
 hold on
 plot(base,plot_both_hand,'r-','LineWidth',2)
 ylim(y_lim)
-title('Both hand class')
+set(gca, 'FontSize',15,'LineWidth',2)
+grid on
+title('Task 1')
 
 subplot(132)
-histogram(both_feet_pp,100,'Normalization',"pdf",'FaceColor',"#0072BD")
+histogram(both_feet_pp,100,'Normalization',"probability",'FaceColor',"#0072BD")
 hold on
 plot(base,plot_both_feet,'b-','LineWidth',2)
 ylim(y_lim)
-title('Both feet class')
+set(gca, 'FontSize',15,'LineWidth',2)
+grid on
+title('Task 2')
 
 subplot(133)
-histogram(rest_pp,100,'Normalization',"pdf",'FaceColor',"#77AC30")
+histogram(rest_pp,100,'Normalization',"probability",'FaceColor',"#77AC30")
 hold on
 plot(base,plot_rest,'g-','LineWidth',2)
 ylim(y_lim)
-title('Rest class')
+set(gca, 'FontSize',15,'LineWidth',2)
+grid on
+title('Rest')
 %--------------------------------------------------------------------------
 
 %% HMM inference
